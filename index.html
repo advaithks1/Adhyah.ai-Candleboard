@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Adhyah.ai — Trade Candle</title>
+  <meta name="description" content="Single-screen (no scroll) image showcase for Adhyah.ai — HTML + CSS only." />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --text:#e8eef6;
+      --muted:#9aa6b2;
+      --border:rgba(255,255,255,.14);
+      --accent1:#00d1ff;
+      --accent2:#8a5eff;
+      --accent3:#16ffbd;
+      --radius:16px;
+      --shadow:0 20px 50px rgba(0,0,0,.35);
+    }
+
+    *,*::before,*::after{ box-sizing:border-box }
+
+    html, body{
+      height:100%;
+      margin:0;
+      overflow:hidden; /* no scroll */
+    }
+
+    body{
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 500px at 15% 10%, rgba(0,209,255,.14), transparent 60%),
+        radial-gradient(900px 500px at 85% 90%, rgba(138,94,255,.16), transparent 60%),
+        linear-gradient(120deg,#090c11,#0b0f14 40%,#080a0e 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior:none; /* prevent overscroll glow/bounce */
+    }
+
+    /* Page frame: fixed to viewport (no scroll) */
+    .page{
+      height:100vh;   /* fallback */
+      height:100svh;  /* small viewport on mobile */
+      height:100dvh;  /* stable viewport on modern mobile */
+      display:grid;
+      grid-template-rows:auto 1fr;
+      gap:12px;
+      padding:calc(env(safe-area-inset-top) + 10px) clamp(12px, 3vw, 24px) calc(env(safe-area-inset-bottom) + 10px);
+    }
+
+    /* Header */
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      min-height:44px;
+      flex-wrap:nowrap; /* keep to one row */
+    }
+
+    .brand{
+      display:inline-flex; align-items:center; gap:10px;
+      min-width:0;           /* allow ellipsis */
+      flex:1 1 auto;         /* take remaining space */
+      overflow:hidden;
+    }
+
+    /* Logo image */
+    .logo-img{
+      height:32px;
+      width:auto;
+      max-width:40vw;        /* prevent overly wide logos */
+      display:block;
+      object-fit:contain;
+      object-position:center left;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+      user-select:none;
+      flex:0 0 auto;
+    }
+
+    .title{
+      display:flex; align-items:center; gap:8px;
+      min-width:0; /* allow name to ellipsis */
+    }
+
+    .name{
+      font-weight:800;
+      font-size:clamp(14px,4.4vw,20px);
+      letter-spacing:.2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .name .muted{ opacity:.8 }
+
+    .stamp{
+      font-size:12px; color:var(--muted);
+      padding:4px 8px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      backdrop-filter:blur(8px);
+      white-space:nowrap;  /* desktop/tablet: keep on one line */
+      line-height:1.2;
+      flex:0 0 auto;       /* keep compact */
+      text-align:left;
+    }
+
+    .tag{
+      font-size:12px; color:var(--muted);
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      backdrop-filter:blur(8px);
+      white-space:nowrap;
+      line-height:1;
+      flex-shrink:0;           /* always visible */
+    }
+
+    /* Stage (fills the rest of the screen) */
+    .stage{
+      min-height:0;    /* allow 1fr to shrink properly */
+      display:grid;
+      grid-template-rows:1fr;
+      padding:clamp(8px, 2.5vw, 16px);
+      border-radius:calc(var(--radius) + 6px);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(10px);
+      overflow:hidden; /* prevents inner scrollbars */
+    }
+
+    /* Viewport for the image (kept inside the screen) */
+    .view{
+      position:relative;
+      width:100%;
+      height:100%;
+      border-radius:var(--radius);
+      overflow:hidden;
+      background:linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.04), 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    /* Main image: no animation, full containment (no cropping) */
+    .media{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:contain;   /* show entire image */
+      object-position:center;
+      display:block;
+    }
+
+    /* Caption chip (static) */
+    .caption{
+      position:absolute; left:12px; bottom:12px;
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:10px;
+      font-size:12px; font-weight:600; color:#0b0f14;
+      background:linear-gradient(135deg, var(--accent3), var(--accent1));
+      border:1px solid rgba(255,255,255,.22);
+      box-shadow:0 8px 16px rgba(0,0,0,.35);
+    }
+
+    /* Small screens: stack date/time, tighten spacing */
+    @media (max-width: 480px){
+      .page{gap:8px}
+      .logo-img{height:28px; max-width:42vw}
+      .title{gap:6px}
+      .tag{font-size:11px; padding:5px 8px}
+      .stamp{
+        font-size:11px;
+        padding:3px 6px;
+        white-space:pre-line;   /* respect \n -> stack date over time */
+        display:inline-block;   /* allow multi-line chip */
+        line-height:1.15;
+      }
+      .caption{font-size:11px; padding:6px 8px}
+    }
+
+    /* Very narrow phones */
+    @media (max-width: 360px){
+      .name .muted{ display:none }         /* hide "Today’s Candle" */
+      .logo-img{height:26px; max-width:38vw}
+      .tag{font-size:10px; padding:4px 6px}
+      .stamp{font-size:10px; padding:3px 6px}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand">
+        <!-- Logo image -->
+        <img class="logo-img" src="Images/logo.png" alt="Adhyah.ai logo" />
+        <div class="title">
+          <div class="name">Adhyah.ai <span class="muted">Today’s Candle</span></div>
+          <!-- Timestamp loaded from time.txt -->
+          <span id="stamp" class="stamp" aria-live="polite" title="Chart timestamp">Loading…</span>
+        </div>
+      </div>
+      <div class="tag">EUR/JPY</div>
+    </header>
+
+    <main class="stage" role="main" aria-label="Image showcase">
+      <div class="view">
+        <!-- Main image -->
+        <img
+          class="media"
+          src="Images/output.png"
+          alt="Featured visual for Adhyah.ai"
+          decoding="async"
+        />
+        <div class="caption">Adhyah.ai</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Fetch timestamp from time.txt and show:
+    // - Desktop/Tablet: "Generated: YYYY-MM-DD HH:MM"
+    // - Mobile (<=480px): "YYYY-MM-DD\nHH:MM" (stacked)
+    (function () {
+      const el = document.getElementById('stamp');
+      if (!el) return;
+
+      function variantsFrom(text){
+        // Expecting: "Chart generated on: 2025-09-23 22:56:21"
+        const line = String(text || '').trim();
+        const m = line.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})(?::\d{2})?/);
+        if (!m) {
+          const fallback = line || 'Time unavailable';
+          return {
+            full: fallback.slice(0, 160),
+            mid: fallback.slice(0, 48),
+            stack: fallback.replace(/\s+/g, ' ').slice(0, 20)
+          };
+        }
+        const date = m[1];
+        const time = m[2];
+        return {
+          full: `Generated: ${date} ${time}`,
+          mid: `${date} ${time}`,
+          stack: `${date}\n${time}`
+        };
+        }
+
+      let V = { full: 'Time unavailable', mid: 'Time unavailable', stack: 'Time' };
+
+      function render(){
+        const w = window.innerWidth || document.documentElement.clientWidth || 480;
+        const txt = (w <= 480) ? V.stack : (w <= 560 ? V.mid : V.full);
+        el.textContent = txt;     // textContent keeps it safe; CSS handles \n on mobile
+        el.title = V.full;
+      }
+
+      function fetchTime(){
+        const url = 'time.txt?ts=' + Date.now(); // cache-bust for latest
+        fetch(url, { cache: 'no-store' })
+          .then(res => res.ok ? res.text() : Promise.reject(res.status))
+          .then(text => { V = variantsFrom(text); render(); })
+          .catch(() => { V = { full: 'Time unavailable', mid: 'Time unavailable', stack: 'Time' }; render(); });
+      }
+
+      fetchTime();
+      window.addEventListener('resize', render);
+    })();
+  </script>
+</body>
+</html>
